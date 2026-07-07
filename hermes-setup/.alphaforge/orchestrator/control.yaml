@@ -1,9 +1,17 @@
-# Human override / control plane. The orchestrator reads this at the start of
-# every tick; workers check it before long runs. Edit + save = next tick obeys.
-mode: paused                # paused | running | killed   (starts PAUSED on purpose)
+# Human override / control plane for AlphaForge Orchestrator
+# Tri-Gate: T0(script) → T1(Proposer) → T2(Challenger) → T3(Arbiter) → T4(Human)
+mode: paused                # paused | running | killed
 max_parallel_workers: 3
 current_priority: ""
 human_instruction: ""       # free-text directive; orchestrator treats as top priority
+
+# Tri-Gate configuration
+challenger_enabled: true    # T2 active? If false, T1 runs solo
+arbiter_enabled: true       # T3 active?
+audit_sample_rate: 20       # % of LOW-risk decisions B randomly audits
+max_debate_rounds: 1        # Max rebuttal rounds between A↔B
+
+# Path restrictions
 allowed_paths:
   - "alphaforge/"
   - "simulation/"
@@ -14,5 +22,4 @@ forbidden_paths:
   - "risk/"
 merge_policy: pr_only
 max_llm_spend_per_day_usd: 25
-# Local dev value; remote deploy must point at the v7-engine checkout on the server.
-repo: /c/Users/dresden/Documents/v7-engine
+repo: /teamspace/studios/this_studio/v7-engine
