@@ -1,0 +1,23 @@
+# Environment (sensitive)
+.env
+.env.local
+*.key
+
+# Node / Bun
+node_modules/
+bun.lock
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Hermes local state
+hermes-setup/.alphaforge/orchestrator/runs/
+hermes-setup/.alphaforge/orchestrator/reports/
+hermes-setup/.alphaforge/orchestrator/reports/*.md
+hermes-setup/.alphaforge/orchestrator/reports/*.yaml
+hermes-setup/.alphaforge/orchestrator/state.json
+
+# Temp
+*.log
+tmp/

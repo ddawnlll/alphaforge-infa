@@ -1,0 +1,21 @@
+# AlphaForge Infrastructure — Hermes Agent Rules
+
+## Architecture (hard boundaries)
+- **Remote server** runs the Hermes gateway, orchestrator, and Hindsight memory.
+- **Local machine** is for development, git, and SSH access.
+- Never commit raw `.env` to the repo — always encrypt first.
+
+## Orchestration
+- Control plane: `config/profiles/af-orchestrator.yaml` defines the orchestrator profile.
+- Ledger lives in `hermes-setup/.alphaforge/orchestrator/`.
+- Cron job: `af-orchestrator-tick` fires every 45m.
+
+## Deploy
+- Use `deploy/remote.sh` for first-time remote setup.
+- Use `setup/install-hermes.sh` for standalone Hermes installs.
+- After deploy, run `deploy/check-status.sh` to verify.
+
+## Memory
+- Hindsight (local mode) — knowledge graph + multi-strategy recall.
+- Config at `config/hindsight/config.json`.
+- LLM provider: Anthropic Claude Sonnet 5 (via `HINDSIGHT_API_LLM_*` env vars).

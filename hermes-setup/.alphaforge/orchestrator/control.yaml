@@ -1,0 +1,17 @@
+# Human override / control plane. The orchestrator reads this at the start of
+# every tick; workers check it before long runs. Edit + save = next tick obeys.
+mode: paused                # paused | running | killed   (starts PAUSED on purpose)
+max_parallel_workers: 3
+current_priority: ""
+human_instruction: ""       # free-text directive; orchestrator treats as top priority
+allowed_paths:
+  - "alphaforge/"
+  - "simulation/"
+  - "lib/"
+forbidden_paths:
+  - "runtime/"
+  - "exchange/"
+  - "risk/"
+merge_policy: pr_only
+max_llm_spend_per_day_usd: 25
+repo: /c/Users/dresden/Documents/hermes-setup

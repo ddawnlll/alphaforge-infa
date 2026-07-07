@@ -1,0 +1,10 @@
+{
+  "mode": "local",
+  "bank_id": "hermes",
+  "recall_budget": "high",
+  "memory_mode": "hybrid",
+  "auto_retain": true,
+  "auto_recall": true,
+  "retain_async": true,
+  "retain_context": "conversation between Hermes Agent and the User"
+}

@@ -1,0 +1,22 @@
+# AlphaForge — Orchestrator Profile Config
+# Deploy to: ~/.hermes/profiles/af-orchestrator/config.yaml
+
+provider: anthropic
+model:
+  default: anthropic/claude-sonnet-5
+  provider: anthropic
+delegation:
+  provider: openrouter
+  model: __NEEDS_LOCAL_VERIFICATION__
+  max_concurrent_children: 3
+  max_spawn_depth: 1
+  max_iterations: 30
+goals:
+  max_turns: 20
+kanban:
+  dispatch_in_gateway: true
+  failure_limit: 2
+cron:
+  wrap_response: false
+agent:
+  reasoning_effort: high
