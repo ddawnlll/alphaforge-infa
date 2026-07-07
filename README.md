@@ -1,6 +1,8 @@
-# AlphaForge
+# AlphaForge Infra
 
-**Autonomous alpha discovery platform** — hypothesis lifecycle, adversarial tri-gate verification, and research validation powered by [Hermes Agent](https://hermes-agent.nousresearch.com/docs/).
+**AlphaForge-specific deployment and infrastructure layer** for the [Hermes Pack](https://github.com/ddawnlll/hermes-pack) orchestration backbone. This repository pins Hermes Pack's `v7-alphaforge` adapter and adds remote setup, E2E sandbox tests, Mission Control wiring, and operational config.
+
+The generic orchestration backbone, adapter system, and tri-gate pattern are owned by **Hermes Pack** — this repo is a deployable AlphaForge-specific instance of that system.
 
 [![GitHub](https://img.shields.io/badge/alphaforge--infa-private-181717?logo=github)]()
 [![Mission Control](https://img.shields.io/badge/UI-mission--control--v1-blue)](https://github.com/ddawnlll/hermes-agent-desktop/tree/af/mission-control-v1)
@@ -9,6 +11,8 @@
 ---
 
 ## Architecture: Adversarial Tri-Gate
+
+> **Ownership note:** The tri-gate pattern (T0–T4) is a **generic Hermes Pack** mechanism defined in `hermes-pack/templates/`. What follows is the AlphaForge-specific configuration of that pattern — profile names, model assignments, gate paths, and risk rules. Other adapters (DesignForge, Money Radar) configure the same tri-gate pattern differently.
 
 AlphaForge uses a **4-tier verification pipeline** inspired by multi-agent debate research (Du et al. arXiv:2305.14325, Irving et al. arXiv:1805.00899). Every research decision passes through increasingly rigorous gates before reaching production.
 
@@ -107,13 +111,13 @@ Her kararı 4 LLM'den geçirmek bütçeyi yakar. Çözüm: doğrulama derinliği
 
 ## Repositories
 
-| Repo | Branch | İçerik |
-|---|---|---|
-| `ddawnlll/alphaforge-infa` | `main` | Orkestratör altyapısı, tri-gate, SOUL, E2E (bu repo) |
-| `ddawnlll/hermes-pack` | `main` | **YENİ** — Ortak bootstrap + adapter sistemi (alt modül) |
-| `ddawnlll/designforge` | `main` | **YENİ** — Bağımsız Design Intelligence Engine |
-| `ddawnlll/af-sandbox` | `main` | E2E test sandbox'ı (planted ground truth) |
-| `ddawnlll/hermes-agent-desktop` | `af/mission-control-v1` | Desktop fork + Mission Control UI |
+| Repo | Role |
+|---|---|
+| `ddawnlll/hermes-pack` | **Generic orchestration backbone** — adapter system, tri-gate templates, bootstrap, tick loop, evidence gates. Owns the reusable patterns. |
+| `ddawnlll/alphaforge-infa` | **AlphaForge infra layer** (this repo) — pins Hermes Pack's `v7-alphaforge` adapter, adds remote deploy, E2E sandbox, Mission Control wiring, and config. |
+| `ddawnlll/designforge` | Independent Design Intelligence Engine using Hermes Pack's `designforge` adapter. |
+| `ddawnlll/af-sandbox` | E2E test sandbox (planted ground truth) for orchestrator behavior validation. |
+| `ddawnlll/hermes-agent-desktop` | Desktop fork + Mission Control UI (branch `af/mission-control-v1`). |
 
 ---
 
@@ -195,7 +199,7 @@ alphaforge-infa/
 ├── .gitignore
 ├── .gitmodules
 │
-├── .hermes-pack/              # Hermes Pack submodule → https://github.com/ddawnlll/hermes-pack
+├── .hermes-pack/              # Pinned Hermes Pack submodule (generic orchestration backbone) → https://github.com/ddawnlll/hermes-pack
 │
 ├── config/                    # Deployment configs
 │   ├── profiles/
