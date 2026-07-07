@@ -331,6 +331,61 @@ hermes kanban boards show
 
 ---
 
-## License
+## SSH Tunnel (Quick Connect)
 
-MIT — built on [Hermes Agent](https://github.com/NousResearch/hermes-agent) (MIT).
+Mission Control'ü remote sunucuya bağlamak için tek komut:
+
+```bash
+# Terminal 1: SSH tunnel (arka planda kalır)
+bash deploy/tunnel.sh
+
+# Terminal 2: Desktop Mission Control
+cd apps/desktop
+npm run dev
+```
+
+Tunnel şu portları forward eder:
+| Local Port | Remote Port | Servis |
+|---|---|---|
+| `localhost:8530` | remote:8530 | Hermes Gateway (RPC, cron, kanban) |
+| `localhost:9885` | remote:9885 | Hindsight Memory API |
+
+Alternatif — el ile:
+```bash
+ssh -L 8530:localhost:8530 -L 9885:localhost:9885 s_01xxx@ssh.lightning.ai
+```
+
+## Mission Control → Remote Bağlantısı
+
+Desktop fork'ta `.env` dosyasına şunları ekle:
+
+```env
+# SSH tunnel ile (önce bash deploy/tunnel.sh çalıştır)
+REMOTE_SSH_HOST=s_01kwwhh24ekngtayqg296bvzzq@ssh.lightning.ai
+REMOTE_LEDGER_PATH=/teamspace/studios/this_studio/af-sandbox/.alphaforge/orchestrator
+GATEWAY_URL=http://localhost:8530
+REMOTE_HINDSIGHT_URL=http://localhost:9885
+GITHUB_TOKEN=ghp_xxx   # optional, higher API rate limit
+```
+
+Detaylı bağlantı kılavuzu: [`docs/mission-control-wiring.md`](docs/mission-control-wiring.md)
+Yeni RemoteBridge implementasyonu: [`docs/remote-bridge.complete.ts`](docs/remote-bridge.complete.ts)
+Gateway API client (referans): [`docs/gateway-client.ts`](docs/gateway-client.ts)
+
+## Quick Commands
+
+```bash
+# Remote health
+bash deploy/check-status.sh
+
+# Tunnel aç
+bash deploy/tunnel.sh
+
+# Tick tetikle (tunnel açıkken)
+curl -X POST http://localhost:8530/rpc \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"cron.run_job","params":{"name":"e2e-final-test"}}'
+
+# Hindsight sorgula (tunnel açıkken)
+curl "http://localhost:9885/recall?q=latest+tick+report"
+```
