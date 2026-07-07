@@ -101,8 +101,8 @@ ssh -t "$REMOTE_SSH" bash -s << 'SCRIPT'
 SCRIPT
 ok "Environment configured"
 
-# ── Phase 4: Profiles & Config ──
-info "Phase 4/5: Setting up profiles & orchestrator..."
+# ── Phase 4: Profiles, Config & Praxis Setup ──
+info "Phase 4/5: Setting up profiles, Praxis gates & orchestrator..."
 ssh -t "$REMOTE_SSH" bash -s << 'SCRIPT'
   set -e
   export PATH="$HOME/.hermes/hermes-agent/venv/bin:$PATH"
@@ -128,21 +128,53 @@ ssh -t "$REMOTE_SSH" bash -s << 'SCRIPT'
   # Install hindsight dependencies
   pip install hindsight-all 2>/dev/null || pip3 install hindsight-all 2>/dev/null || true
 
-  # Copy orchestrator bootstrap & ledger
-  mkdir -p "$HOME/hermes-setup"
-  rsync -a "$HOME/alphaforge-infa/hermes-setup/" "$HOME/hermes-setup/" 2>/dev/null || \
-    cp -r "$HOME/alphaforge-infa/hermes-setup"/* "$HOME/hermes-setup/" 2>/dev/null || true
+  # ── Praxis Gate Setup ──
+  echo "Setting up Praxis evidence gates..."
 
-  # Re-link gate script
+  # Ensure hermes-pack submodule is up to date
+  cd "$HOME/alphaforge-infa"
+  git submodule update --init --recursive
+
+  # Create .alphaforge/orchestrator directories
+  mkdir -p .alphaforge/orchestrator/{schemas,scripts,evidence,task_contracts,memory,runs,reports,decisions,debates}
+
+  # Install Praxis gate scripts to Hermes scripts directory
   mkdir -p "$HOME/.hermes/scripts"
-  cp "$HOME/alphaforge-infa/hermes-setup/templates/scripts/tick-gate.sh" "$HOME/.hermes/scripts/af-orchestrator-tick-gate.sh" 2>/dev/null || true
+  cp .alphaforge/orchestrator/scripts/tick-gate.sh "$HOME/.hermes/scripts/af-orchestrator-tick-gate.sh"
+  chmod +x "$HOME/.hermes/scripts/af-orchestrator-tick-gate.sh"
 
-  # Switch to profile
-  hermes profile use af-orchestrator 2>/dev/null || true
+  # Create cron job for orchestrator tick (with pre-tick gate script)
+  if ! hermes cron list 2>/dev/null | grep -q "af-orchestrator-tick"; then
+    hermes cron create \
+      --name af-orchestrator-tick \
+      --schedule "every 45m" \
+      --script "$HOME/.hermes/scripts/af-orchestrator-tick-gate.sh" \
+      --workdir "$HOME/alphaforge-infa" \
+      --deliver local
+    echo "Cron job created: af-orchestrator-tick (every 45m)"
+  fi
+
+  # Create e2e-final-test cron (if not exists)
+  if ! hermes cron list 2>/dev/null | grep -q "e2e-final-test"; then
+    hermes cron create \
+      --name e2e-final-test \
+      --schedule "every 60m" \
+      --workdir "$HOME/alphaforge-infa" \
+      --deliver local
+    echo "Cron job created: e2e-final-test (every 60m)"
+  fi
+
+  # Verify Praxis setup
+  echo ""
+  echo "Praxis verification:"
+  ls -la .alphaforge/orchestrator/schemas/ 2>/dev/null && echo "  ✅ Schemas"
+  ls -la .alphaforge/orchestrator/scripts/ 2>/dev/null && echo "  ✅ Gate scripts"
+  [ -f .hermes-pack/templates/praxis/praxis-verify.sh ] && echo "  ✅ Praxis verify script"
+  [ -f .alphaforge/orchestrator/current_state.md ] && echo "  ✅ current_state.md"
 
   echo "Profile setup complete"
 SCRIPT
-ok "Profiles configured"
+ok "Profiles, Praxis gates configured"
 
 # ── Phase 5: Gateway ──
 info "Phase 5/5: Starting Hermes gateway..."
