@@ -14,4 +14,5 @@ forbidden_paths:
   - "risk/"
 merge_policy: pr_only
 max_llm_spend_per_day_usd: 25
-repo: /c/Users/dresden/Documents/hermes-setup
+# Local dev value; remote deploy must point at the v7-engine checkout on the server.
+repo: /c/Users/dresden/Documents/v7-engine
