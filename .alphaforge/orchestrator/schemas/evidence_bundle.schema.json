@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ddawnlll/alphaforge-infa/.alphaforge/orchestrator/schemas/evidence_bundle.schema.json",
+  "title": "Evidence Bundle",
+  "description": "Structured output from a Hermes worker sub-agent. Claims without evidence references are rejected by Praxis. Refer to hermes-pack/templates/praxis/schemas/evidence_bundle.schema.json for full documentation.",
+  "type": "object",
+  "required": [
+    "run_id", "task_id", "hypothesis_id", "status",
+    "git", "context", "commands", "claims"
+  ],
+  "properties": {
+    "run_id": { "type": "string", "pattern": "^[A-Z]+-RUN-\\d{8}-\\d{3,4}$" },
+    "task_id": { "type": "string" },
+    "hypothesis_id": { "type": "string" },
+    "status": { "type": "string", "enum": ["PASS", "PASS_WITH_NOTES", "FAIL", "PARTIAL", "BLOCKED"] },
+    "git": {
+      "type": "object",
+      "required": ["base_sha", "head_sha", "branch"],
+      "properties": {
+        "base_sha": { "type": "string" },
+        "head_sha": { "type": "string" },
+        "branch": { "type": "string" },
+        "diff_path": { "type": "string" }
+      }
+    },
+    "context": {
+      "type": "object",
+      "required": ["capsule_hash", "required_context_read"],
+      "properties": {
+        "capsule_hash": { "type": "string" },
+        "required_context_read": { "type": "boolean" }
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim", "evidence"],
+        "properties": {
+          "claim": { "type": "string" },
+          "confidence": { "type": "string", "enum": ["high", "medium", "low", "uncertain"], "default": "medium" },
+          "evidence": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1
+          }
+        }
+      }
+    },
+    "diff": {
+      "type": "object",
+      "properties": {
+        "changed_files": { "type": "array", "items": { "type": "string" } },
+        "forbidden_files_touched": { "type": "array", "items": { "type": "string" } },
+        "total_additions": { "type": "integer" },
+        "total_deletions": { "type": "integer" }
+      }
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["cmd", "exit_code"],
+        "properties": {
+          "cmd": { "type": "string" },
+          "exit_code": { "type": "integer" },
+          "stdout_path": { "type": "string" },
+          "duration_seconds": { "type": "number" }
+        }
+      }
+    },
+    "metrics": { "type": "object", "additionalProperties": true },
+    "data_lineage": {
+      "type": "object",
+      "properties": {
+        "train_end": { "type": "string" },
+        "oos_start": { "type": "string" },
+        "is_synthetic": { "type": "boolean", "default": false }
+      }
+    },
+    "controls": {
+      "type": "object",
+      "properties": {
+        "negative_control_run": { "type": "boolean", "default": false },
+        "leakage_check_passed": { "type": "boolean", "default": false },
+        "reproducible": { "type": "boolean", "default": false }
+      }
+    },
+    "uncertainties": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "issue": { "type": "string" },
+          "impact": { "type": "string", "enum": ["low", "medium", "high"] },
+          "safe_default_used": { "type": "string" }
+        },
+        "required": ["issue", "impact"]
+      }
+    }
+  }
+}

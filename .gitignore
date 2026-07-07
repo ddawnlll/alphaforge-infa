@@ -18,6 +18,11 @@ hermes-setup/.alphaforge/orchestrator/reports/*.md
 hermes-setup/.alphaforge/orchestrator/reports/*.yaml
 hermes-setup/.alphaforge/orchestrator/state.json
 
+# Runtime evidence data (generated, not committed)
+.alphaforge/orchestrator/evidence/*/
+.alphaforge/orchestrator/runs/
+.alphaforge/orchestrator/reports/
+
 # Temp
 *.log
 tmp/

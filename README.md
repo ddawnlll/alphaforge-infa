@@ -107,17 +107,61 @@ Her kararı 4 LLM'den geçirmek bütçeyi yakar. Çözüm: doğrulama derinliği
 | **HIGH** | PASS + merge, deadlock | A + B + Arbiter (anlaşmazlıkta) |
 | **CRITICAL** | forbidden path, anayasa | Her zaman insan (T4) |
 
+|---
+
+## Praxis Evidence Gate (T0 Deterministic)
+
+Praxis is the **deterministic verification kernel** that validates ALL worker output before any LLM-based gate (T1/T2/T3/T4) runs. It is a reusable, schema-driven system that is generic to Hermes Pack and configured for AlphaForge here.
+
+### AlphaForge Praxis Configuration
+
+| Setting | Value |
+|---------|-------|
+| **Pre-tick gate** | `.alphaforge/orchestrator/scripts/tick-gate.sh` |
+| **Post-worker gate** | `.alphaforge/orchestrator/scripts/praxis-verify.sh` |
+| **Schemas** | `.alphaforge/orchestrator/schemas/*.schema.json` |
+| **Canonical source** | `hermes-pack/templates/praxis/` |
+| **Fail-closed** | Any check error → FAIL. Never "pass silently." |
+| **Memory policy** | Workers CANNOT write memory. Only orchestrator after PASS. |
+
+### Checks Run by Praxis
+
+| Check | Script | What it validates |
+|-------|--------|-------------------|
+| Schema | `check_schema.py` | Evidence bundle conforms to schema, claims have evidence |
+| Forbidden paths | `check_paths.py` | No files touched outside allowed boundaries |
+| Control mode | `check_control.sh` | `control.yaml` mode is `running` |
+| Branch pushed | `check_branch.py` | Worker branch exists on remote origin |
+| Data lineage | `check_lineage.py` | OOS window > train_end, no obvious leakage |
+| Negative control | `check_negative_control.py` | High-risk tasks include negative control |
+| Memory write | `check_memory.py` | Worker did not write to memory files |
+| Budget | `check_budget.py` | Duration, file count, and claim count within limits |
+| Metrics sanity | `check_metrics.py` | Numeric metrics within sane bounds |
+
+### Praxis Verdict
+
+```json
+{
+  "status": "PASS|FAIL|BLOCKED",
+  "next_action": "proceed_t1|reject_without_llm|human_review",
+  "checks_passed": [...],
+  "checks_failed": [...],
+  "evidence_summary": {
+    "claims_with_evidence": 5,
+    "claims_without_evidence": 0,
+    "forbidden_touches": 0
+  }
+}
+```
+
+If FAIL → worker output rejected without waking any LLM. Hypothesis updated.
+If PASS → evidence forwarded to T1 Proposer (and T2/T3/T4 per risk level).
+
 ---
 
 ## Repositories
 
 | Repo | Role |
-|---|---|
-| `ddawnlll/hermes-pack` | **Generic orchestration backbone** — adapter system, tri-gate templates, bootstrap, tick loop, evidence gates. Owns the reusable patterns. |
-| `ddawnlll/alphaforge-infa` | **AlphaForge infra layer** (this repo) — pins Hermes Pack's `v7-alphaforge` adapter, adds remote deploy, E2E sandbox, Mission Control wiring, and config. |
-| `ddawnlll/designforge` | Independent Design Intelligence Engine using Hermes Pack's `designforge` adapter. |
-| `ddawnlll/af-sandbox` | E2E test sandbox (planted ground truth) for orchestrator behavior validation. |
-| `ddawnlll/hermes-agent-desktop` | Desktop fork + Mission Control UI (branch `af/mission-control-v1`). |
 
 ---
 

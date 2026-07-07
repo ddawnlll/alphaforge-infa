@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ddawnlll/alphaforge-infa/.alphaforge/orchestrator/schemas/context_capsule.schema.json",
+  "title": "Context Capsule",
+  "description": "The bounded context package delivered to a sub-agent. Refer to hermes-pack/templates/praxis/schemas/context_capsule.schema.json for full documentation.",
+  "type": "object",
+  "required": ["capsule_id", "created_at", "task_contract_ref", "current_state_snapshot", "required_files", "instructions"],
+  "properties": {
+    "capsule_id": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "task_contract_ref": { "type": "string" },
+    "current_state_snapshot": {
+      "type": "object",
+      "required": ["file", "sha"],
+      "properties": {
+        "file": { "type": "string" },
+        "sha": { "type": "string" }
+      }
+    },
+    "required_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "purpose", "sha"],
+        "properties": {
+          "path": { "type": "string" },
+          "purpose": { "type": "string" },
+          "sha": { "type": "string" }
+        }
+      }
+    },
+    "instructions": {
+      "type": "object",
+      "required": ["objective", "boundaries"],
+      "properties": {
+        "objective": { "type": "string" },
+        "boundaries": {
+          "type": "object",
+          "properties": {
+            "allowed_paths": { "type": "array", "items": { "type": "string" } },
+            "forbidden_paths": { "type": "array", "items": { "type": "string" } },
+            "forbidden_actions": { "type": "array", "items": { "type": "string" } }
+          },
+          "required": ["allowed_paths", "forbidden_paths"]
+        },
+        "acceptance_criteria": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "capsule_hash": { "type": "string" }
+  }
+}

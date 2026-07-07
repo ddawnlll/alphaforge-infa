@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ddawnlll/alphaforge-infa/.alphaforge/orchestrator/schemas/task_contract.schema.json",
+  "title": "Task Contract",
+  "description": "Describes a single bounded task for a Hermes worker sub-agent. Refer to hermes-pack/templates/praxis/schemas/task_contract.schema.json for full documentation.",
+  "type": "object",
+  "required": [
+    "task_id", "objective", "allowed_paths", "forbidden_paths",
+    "required_context", "acceptance", "output_required",
+    "risk_level", "hypothesis_id"
+  ],
+  "properties": {
+    "task_id": { "type": "string", "pattern": "^[A-Z]+-[A-Z]+-\\d{4}$" },
+    "hypothesis_id": { "type": "string" },
+    "risk_level": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+    "objective": { "type": "string" },
+    "allowed_paths": { "type": "array", "items": { "type": "string" } },
+    "forbidden_paths": { "type": "array", "items": { "type": "string" } },
+    "required_context": { "type": "array", "items": { "type": "string" } },
+    "runner": {
+      "type": "object",
+      "properties": {
+        "command": { "type": "string" },
+        "timeout_seconds": { "type": "integer", "default": 600 }
+      }
+    },
+    "acceptance": { "type": "array", "items": { "type": "string" } },
+    "output_required": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["evidence_bundle.json", "diff.patch", "test_output.txt", "uncertainty.md", "metrics.json"] }
+    }
+  }
+}
