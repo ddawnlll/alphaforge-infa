@@ -129,21 +129,28 @@ ssh -t "$REMOTE_SSH" bash -s << 'SCRIPT'
   pip install hindsight-all 2>/dev/null || pip3 install hindsight-all 2>/dev/null || true
 
   # ── Praxis Gate Setup ──
-  echo "Setting up Praxis evidence gates..."
+  echo "Setting up Praxis Truth Kernel..."
 
-  # Ensure hermes-pack submodule is up to date
+  # Ensure hermes-pack submodule is up to date (includes Praxis submodule)
   cd "$HOME/alphaforge-infa"
   git submodule update --init --recursive
 
-  # Create .alphaforge/orchestrator directories
-  mkdir -p .alphaforge/orchestrator/{schemas,scripts,evidence,task_contracts,memory,runs,reports,decisions,debates}
+  # Install Praxis CLI (from submodule)
+  if [ -f ".hermes-pack/tools/praxis/packages/cli/package.json" ]; then
+    cd ".hermes-pack/tools/praxis/packages/cli"
+    npm install 2>/dev/null || bun install 2>/dev/null || echo "Praxis CLI install deferred"
+    cd "$HOME/alphaforge-infa"
+  fi
 
-  # Install Praxis gate scripts to Hermes scripts directory
+  # Create .alphaforge/orchestrator directories
+  mkdir -p .alphaforge/orchestrator/{evidence,task_contracts,memory,runs,reports,decisions,debates,schemas}
+
+  # Install pre-tick gate script to Hermes scripts
   mkdir -p "$HOME/.hermes/scripts"
-  cp .alphaforge/orchestrator/scripts/tick-gate.sh "$HOME/.hermes/scripts/af-orchestrator-tick-gate.sh"
+  cp .hermes-pack/templates/scripts/tick-gate.sh "$HOME/.hermes/scripts/af-orchestrator-tick-gate.sh"
   chmod +x "$HOME/.hermes/scripts/af-orchestrator-tick-gate.sh"
 
-  # Create cron job for orchestrator tick (with pre-tick gate script)
+  # Create cron job for orchestrator tick
   if ! hermes cron list 2>/dev/null | grep -q "af-orchestrator-tick"; then
     hermes cron create \
       --name af-orchestrator-tick \
@@ -154,22 +161,11 @@ ssh -t "$REMOTE_SSH" bash -s << 'SCRIPT'
     echo "Cron job created: af-orchestrator-tick (every 45m)"
   fi
 
-  # Create e2e-final-test cron (if not exists)
-  if ! hermes cron list 2>/dev/null | grep -q "e2e-final-test"; then
-    hermes cron create \
-      --name e2e-final-test \
-      --schedule "every 60m" \
-      --workdir "$HOME/alphaforge-infa" \
-      --deliver local
-    echo "Cron job created: e2e-final-test (every 60m)"
-  fi
-
-  # Verify Praxis setup
+  # Verify Praxis integration
   echo ""
-  echo "Praxis verification:"
-  ls -la .alphaforge/orchestrator/schemas/ 2>/dev/null && echo "  ✅ Schemas"
-  ls -la .alphaforge/orchestrator/scripts/ 2>/dev/null && echo "  ✅ Gate scripts"
-  [ -f .hermes-pack/templates/praxis/praxis-verify.sh ] && echo "  ✅ Praxis verify script"
+  echo "Praxis integration check:"
+  [ -f .hermes-pack/tools/praxis-bridge.sh ] && echo "  ✅ Praxis bridge script"
+  [ -f .hermes-pack/tools/praxis/packages/cli/src/cli.ts ] && echo "  ✅ Praxis CLI source"
   [ -f .alphaforge/orchestrator/current_state.md ] && echo "  ✅ current_state.md"
 
   echo "Profile setup complete"
