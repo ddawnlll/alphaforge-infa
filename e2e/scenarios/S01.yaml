@@ -1,0 +1,15 @@
+# S01: Clean PASS
+# Staged: h-real task done, branch pushed, valid evidence, CI green
+# Expected: PR opened, NOT auto-merged, decisions/ entry, hindsight retain called
+setup:
+  scenario: S01
+  hypothesis: h-real
+  branch: af/h-real-volnorm
+  evidence: baseline.json + vol_normalize.json + neg_control.json
+  ci_green: true
+asserthis:
+  - PR opened with evidence link
+  - NOT auto-merged (constitution unamended)
+  - decisions/ entry "needs human"
+  - report verdict PASS
+  - hindsight retain called
