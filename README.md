@@ -107,55 +107,35 @@ Her kararı 4 LLM'den geçirmek bütçeyi yakar. Çözüm: doğrulama derinliği
 | **HIGH** | PASS + merge, deadlock | A + B + Arbiter (anlaşmazlıkta) |
 | **CRITICAL** | forbidden path, anayasa | Her zaman insan (T4) |
 
-|---
+|
 
-## Praxis Evidence Gate (T0 Deterministic)
+## Praxis Truth Kernel
 
-Praxis is the **deterministic verification kernel** that validates ALL worker output before any LLM-based gate (T1/T2/T3/T4) runs. It is a reusable, schema-driven system that is generic to Hermes Pack and configured for AlphaForge here.
+Praxis (https://github.com/ddawnlll/praxis) is the **independent Truth Kernel** for agent output verification. It is NOT built inside Hermes Pack — it lives in its own repo and is called via CLI.
 
-### AlphaForge Praxis Configuration
+### Integration
 
-| Setting | Value |
-|---------|-------|
-| **Pre-tick gate** | `.alphaforge/orchestrator/scripts/tick-gate.sh` |
-| **Post-worker gate** | `.alphaforge/orchestrator/scripts/praxis-verify.sh` |
-| **Schemas** | `.alphaforge/orchestrator/schemas/*.schema.json` |
-| **Canonical source** | `hermes-pack/templates/praxis/` |
-| **Fail-closed** | Any check error → FAIL. Never "pass silently." |
-| **Memory policy** | Workers CANNOT write memory. Only orchestrator after PASS. |
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| Praxis Truth Kernel | `ddawnlll/praxis` | 6-gate verification pipeline (SchemaGate, LockGate, EvidenceGate, WiringGate, ExecGate, FinalGate) |
+| Hermes Pack bridge | `.hermes-pack/tools/praxis-bridge.sh` | Thin wrapper calling `praxis verify` |
+| AlphaForge config | `.alphaforge/orchestrator/schemas/` | Adapter-specific schema configs |
+| Pre-tick gate | `.hermes-pack/templates/scripts/tick-gate.sh` | Wake/skip check (not Praxis) |
 
-### Checks Run by Praxis
+### Flow
 
-| Check | Script | What it validates |
-|-------|--------|-------------------|
-| Schema | `check_schema.py` | Evidence bundle conforms to schema, claims have evidence |
-| Forbidden paths | `check_paths.py` | No files touched outside allowed boundaries |
-| Control mode | `check_control.sh` | `control.yaml` mode is `running` |
-| Branch pushed | `check_branch.py` | Worker branch exists on remote origin |
-| Data lineage | `check_lineage.py` | OOS window > train_end, no obvious leakage |
-| Negative control | `check_negative_control.py` | High-risk tasks include negative control |
-| Memory write | `check_memory.py` | Worker did not write to memory files |
-| Budget | `check_budget.py` | Duration, file count, and claim count within limits |
-| Metrics sanity | `check_metrics.py` | Numeric metrics within sane bounds |
-
-### Praxis Verdict
-
-```json
-{
-  "status": "PASS|FAIL|BLOCKED",
-  "next_action": "proceed_t1|reject_without_llm|human_review",
-  "checks_passed": [...],
-  "checks_failed": [...],
-  "evidence_summary": {
-    "claims_with_evidence": 5,
-    "claims_without_evidence": 0,
-    "forbidden_touches": 0
-  }
-}
+```
+Worker output → praxis verify --plan planspec.yaml
+  → SchemaGate → LockGate → EvidenceGate → WiringGate → ExecGate → FinalGate
+  → PASS/HOLD/FAIL → T1/T2/T3/T4 gates
 ```
 
-If FAIL → worker output rejected without waking any LLM. Hypothesis updated.
-If PASS → evidence forwarded to T1 Proposer (and T2/T3/T4 per risk level).
+### Key Rules
+
+- **Praxis before T1.** No LLM gate runs before deterministic verification.
+- **No evidence = no claim.** Every claim must cite file+line or test output.
+- **Workers don't write memory.** Only orchestrator after PASS.
+- **Fail-closed.** HOLD/FAIL = reject without LLM cost.
 
 ---
 
