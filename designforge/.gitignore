@@ -1,8 +1,0 @@
-node_modules/
-.env
-*.log
-data/sites/*/viewport.png
-data/sites/*/fullpage.png
-data/sites/*/mobile.png
-data/sites/*/page.html
-data/blueprints/

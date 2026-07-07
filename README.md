@@ -47,7 +47,8 @@ AlphaForge uses a **4-tier verification pipeline** inspired by multi-agent debat
    └────────────────────────────────────────────────┘
 ```
 
-**DesignForge** bu sisteme şöyle oturuyor:
+**DesignForge** artık bağımsız bir repo: [`ddawnlll/designforge`](https://github.com/ddawnlll/designforge).
+Hermes Pack `designforge` adapter'ı ile kurulur. Tri-gate yapısını AlphaForge'dan miras alır.
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -109,6 +110,8 @@ Her kararı 4 LLM'den geçirmek bütçeyi yakar. Çözüm: doğrulama derinliği
 | Repo | Branch | İçerik |
 |---|---|---|
 | `ddawnlll/alphaforge-infa` | `main` | Orkestratör altyapısı, tri-gate, SOUL, E2E (bu repo) |
+| `ddawnlll/hermes-pack` | `main` | **YENİ** — Ortak bootstrap + adapter sistemi (alt modül) |
+| `ddawnlll/designforge` | `main` | **YENİ** — Bağımsız Design Intelligence Engine |
 | `ddawnlll/af-sandbox` | `main` | E2E test sandbox'ı (planted ground truth) |
 | `ddawnlll/hermes-agent-desktop` | `af/mission-control-v1` | Desktop fork + Mission Control UI |
 
@@ -127,6 +130,7 @@ Her kararı 4 LLM'den geçirmek bütçeyi yakar. Çözüm: doğrulama derinliği
 ```bash
 git clone https://github.com/ddawnlll/alphaforge-infa.git
 cd alphaforge-infa
+git submodule update --init   # get hermes-pack
 bash setup/bootstrap.sh
 ```
 
@@ -189,26 +193,9 @@ alphaforge-infa/
 ├── README.md
 ├── AGENTS.md                  # Hermes agent rules (read this first!)
 ├── .gitignore
+├── .gitmodules
 │
-├── hermes-setup/              # Orchestrator pack (deployed to remote)
-│   ├── adapters/v7-alphaforge/
-│   │   ├── SOUL.orchestrator.md   # T1 identity + tick procedure (v3 tri-gate)
-│   │   ├── SOUL.challenger.md     # T2 identity (read-only critic)
-│   │   ├── SOUL.arbiter.md        # T3 identity (on-demand judge)
-│   │   ├── AGENTS.adapter.md      # Project-specific rules
-│   │   └── prompts/tick.md        # Short cron tick prompt
-│   │
-│   └── .alphaforge/orchestrator/
-│       ├── control.yaml       # Human override plane (mode, budget, paths)
-│       ├── state.json         # Tick ledger
-│       ├── hypotheses/        # Research hypotheses (seed.yaml + more)
-│       ├── runs/              # Evidence JSONs from workers
-│       ├── reports/           # Tick reports <date>-tick.md
-│       ├── decisions/         # T4 human inbox
-│       ├── debates/           # T1↔T2 debate logs
-│       └── scripts/           # T0 gate scripts
-│           ├── check-schema.sh    # Schema validation (fail-closed)
-│           └── check-paths.sh     # Path security gate (fail-closed)
+├── .hermes-pack/              # Hermes Pack submodule → https://github.com/ddawnlll/hermes-pack
 │
 ├── config/                    # Deployment configs
 │   ├── profiles/
@@ -220,37 +207,38 @@ alphaforge-infa/
 │   ├── hindsight/config.json
 │   └── mission-control.env.example # Desktop UI remote bridge config
 │
-├── e2e/                        # E2E test harness (branch: af/e2e-sandbox)
-│   ├── run-suite.sh            # Full 10-scenario runner
-│   ├── reset.sh                # Sandbox state reset
-│   ├── assert.sh               # Scenario assert engine
-│   ├── scenarios/S01..S10.yaml # Scenario definitions
-│   ├── stage/S01..S10-stage.sh # Scenario staging scripts
-│   └── results/                # Generated scorecards
+├── .alphaforge/orchestrator/  # Ledger (created by hermes-pack bootstrap)
+│   ├── control.yaml           # Human override plane (mode, budget, paths)
+│   ├── state.json             # Tick ledger
+│   ├── hypotheses/            # Research hypotheses (seed.yaml + more)
+│   ├── runs/                  # Evidence JSONs from workers
+│   ├── reports/               # Tick reports <date>-tick.md
+│   ├── decisions/             # T4 human inbox
+│   ├── debates/               # T1↔T2 debate logs
+│   └── scripts/               # T0 gate scripts
+│       ├── check-schema.sh    # Schema validation (fail-closed)
+│       └── check-paths.sh     # Path security gate (fail-closed)
 │
-├── designforge/               # Design Intelligence Engine
-│   ├── forge.js               # "URL ver → 10 saniyede redesign blueprint"
-│   ├── SOUL.designer.md        # T1 Designer identity
-│   ├── SOUL.design-judge.md    # T3 Design Judge (VLM)
-│   ├── AGENTS.md               # DesignForge agent rules
-│   ├── engine/                 # Core: ingest, audit, index, retrieval, blueprint
-│   ├── registry/               # shadcn-compatible component catalog
-│   ├── hermes-skills/          # 8 outreach skills (lead→draft, NO auto-send)
-│   ├── config/                 # Profile + audit rubric
-│   └── data/                   # Lead DB, vector index, blueprints
+├── e2e/                       # E2E test harness (branch: af/e2e-sandbox)
+│   ├── run-suite.sh           # Full 10-scenario runner
+│   ├── reset.sh               # Sandbox state reset
+│   ├── assert.sh              # Scenario assert engine
+│   ├── scenarios/S01..S10.yaml
+│   ├── stage/S01..S10-stage.sh
+│   └── results/               # Generated scorecards
 │
 ├── docs/
 │   └── mission-control-wiring.md  # Desktop ↔ Remote connection guide
 │
-├── setup/                      # Bootstrap scripts
+├── setup/                     # Bootstrap scripts
 │   ├── bootstrap.sh
 │   ├── install-hermes.sh
 │   ├── encrypt-env.sh / decrypt-env.sh
 │   └── env.example
 │
-└── deploy/                     # Deployment
-    ├── remote.sh               # Full remote deploy
-    ├── check-status.sh          # Health check
+└── deploy/                    # Deployment
+    ├── remote.sh              # Full remote deploy
+    ├── check-status.sh        # Health check
     └── start-hindsight-daemon.py
 ```
 
@@ -258,15 +246,16 @@ alphaforge-infa/
 
 ## Tri-Gate Profiles
 
-| Tier | Profil Adı | Model | Rol |
-|---|---|---|---|
-| **T0** | — | Bash/Python | Deterministic gate script |
-| **T1** | `af-orchestrator` | Claude Sonnet 5 / DeepSeek V4 | Proposer, tek yazar |
-| **T1** | `designforge-designer` | DeepSeek V4 | Design blueprint generator |
-| **T2** | `af-challenger` | DeepSeek V4 (veya farklı aile) | Adversarial critic, read-only |
-| **T3** | `af-arbiter` | Yüksek reasoning model | On-demand judge |
-| **T3** | `designforge-judge` | VLM (GPT-4o/Gemini) | Design quality arbiter (UICrit) |
-| **T4** | — | Human | Anayasal otorite |
+|| Tier | Profil Adı | Model | Rol |
+||---|---|---|---|
+|| **T0** | — | Bash/Python | Deterministic gate script |
+|| **T1** | `af-orchestrator` | Claude Sonnet 5 / DeepSeek V4 | Proposer, tek yazar |
+|| **T2** | `af-challenger` | DeepSeek V4 (veya farklı aile) | Adversarial critic, read-only |
+|| **T3** | `af-arbiter` | Yüksek reasoning model | On-demand judge |
+|| **T4** | — | Human | Anayasal otorite |
+
+> **DesignForge** kendi profillerini kullanır: `designforge-designer`, `designforge-judge`.
+> Detay: [`ddawnlll/designforge`](https://github.com/ddawnlll/designforge)
 
 ---
 
