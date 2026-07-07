@@ -1,0 +1,46 @@
+# DesignForge — Hermes Profile Config
+# Deploy to: ~/.hermes/profiles/designforge/config.yaml
+# Usage: hermes profile use designforge
+
+provider: opencode-go
+model:
+  default: deepseek-v4-flash
+  provider: opencode-go
+delegation:
+  provider: opencode-go
+  model: deepseek-v4-flash
+  max_concurrent_children: 3
+  max_spawn_depth: 2
+  max_iterations: 30
+goals:
+  max_turns: 20
+cron:
+  wrap_response: false
+agent:
+  reasoning_effort: high
+memory:
+  namespace: designforge
+secrets_allowlist:
+  - exa_api_key
+  - discord_webhook
+  - github_token
+filesystem_allowlist:
+  - /c/Users/dresden/Documents/alphaforge-infa/designforge
+  - /c/Users/dresden/Documents/alphaforge-infa/config
+allowed_tools:
+  - web_search
+  - web_extract
+  - browser_navigate
+  - browser_snapshot
+  - browser_screenshot
+  - terminal
+  - read_file
+  - write_file
+  - patch
+  - search_files
+  - cronjob
+  - delegate_task
+  - discord_notify
+forbidden_tools:
+  - memory
+  - execute_code

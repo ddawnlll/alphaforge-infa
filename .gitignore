@@ -21,3 +21,8 @@ hermes-setup/.alphaforge/orchestrator/state.json
 # Temp
 *.log
 tmp/
+
+# DesignForge generated data
+designforge/data/blueprints/
+designforge/data/sites/
+designforge/data/embeddings/

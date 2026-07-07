@@ -19,3 +19,10 @@
 - Hindsight (local mode) — knowledge graph + multi-strategy recall.
 - Config at `config/hindsight/config.json`.
 - LLM provider: Anthropic Claude Sonnet 5 (via `HINDSIGHT_API_LLM_*` env vars).
+
+## DesignForge (Design Intelligence Engine)
+- Located at `designforge/` — fully integrated into this repo.
+- "URL ver → 10 saniyede redesign blueprint" engine.
+- Uses tri-gate for design quality: Designer (T1) → Challenger (T2) → Design Judge (T3/VLM).
+- 8 Hermes skills for outreach pipeline (leads → drafts, NO auto-send).
+- See `designforge/AGENTS.md` for DesignForge-specific rules.

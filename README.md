@@ -47,6 +47,25 @@ AlphaForge uses a **4-tier verification pipeline** inspired by multi-agent debat
    └────────────────────────────────────────────────┘
 ```
 
+**DesignForge** bu sisteme şöyle oturuyor:
+
+```
+┌─────────────────────────────────────────────────────┐
+│  DesignForge · Design Intelligence Engine            │
+├─────────────────────────────────────────────────────┤
+│  [Lead Discovery] → [Website Audit] → [Retrieval]   │
+│       ↓                                              │
+│  [Blueprint Generator] → [T3 Design Judge]           │
+│       ↓                                              │
+│  [Component Assembly] → [Lighthouse Quality Gate]    │
+│       ↓                                              │
+│  [Outreach Draft] OR [Client Delivery]               │
+└─────────────────────────────────────────────────────┘
+         ↓ inherits tri-gate from AlphaForge
+   T0: deterministic · T1: designer · T2: challenger
+   T3: VLM judge (UICrit) · T4: human sign-off
+```
+
 ### Gate Flow
 
 ```
@@ -209,6 +228,17 @@ alphaforge-infa/
 │   ├── stage/S01..S10-stage.sh # Scenario staging scripts
 │   └── results/                # Generated scorecards
 │
+├── designforge/               # Design Intelligence Engine
+│   ├── forge.js               # "URL ver → 10 saniyede redesign blueprint"
+│   ├── SOUL.designer.md        # T1 Designer identity
+│   ├── SOUL.design-judge.md    # T3 Design Judge (VLM)
+│   ├── AGENTS.md               # DesignForge agent rules
+│   ├── engine/                 # Core: ingest, audit, index, retrieval, blueprint
+│   ├── registry/               # shadcn-compatible component catalog
+│   ├── hermes-skills/          # 8 outreach skills (lead→draft, NO auto-send)
+│   ├── config/                 # Profile + audit rubric
+│   └── data/                   # Lead DB, vector index, blueprints
+│
 ├── docs/
 │   └── mission-control-wiring.md  # Desktop ↔ Remote connection guide
 │
@@ -232,8 +262,10 @@ alphaforge-infa/
 |---|---|---|---|
 | **T0** | — | Bash/Python | Deterministic gate script |
 | **T1** | `af-orchestrator` | Claude Sonnet 5 / DeepSeek V4 | Proposer, tek yazar |
+| **T1** | `designforge-designer` | DeepSeek V4 | Design blueprint generator |
 | **T2** | `af-challenger` | DeepSeek V4 (veya farklı aile) | Adversarial critic, read-only |
 | **T3** | `af-arbiter` | Yüksek reasoning model | On-demand judge |
+| **T3** | `designforge-judge` | VLM (GPT-4o/Gemini) | Design quality arbiter (UICrit) |
 | **T4** | — | Human | Anayasal otorite |
 
 ---
